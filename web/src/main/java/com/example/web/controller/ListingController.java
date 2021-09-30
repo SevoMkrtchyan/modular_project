@@ -12,10 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,14 +32,17 @@ public class ListingController {
     public String findAll(ModelMap modelMap) {
         List<Listing> listings = listingService.findAll();
         List<ListingDto> listingDtos = parseListingsToListingDtoList(listings);
+        modelMap.addAttribute("listing", new ListingCreateDto());
         modelMap.addAttribute("listings", listingDtos);
+        modelMap.addAttribute("categories", categoryService.findAll());
         log.info("Requested to find all listings," +
                 "sending response with parsed listingsDto list which size is {}", listingDtos.size());
         return "listings";
     }
 
     @PostMapping("/saveListing")
-    public String saveListing(@RequestBody ListingCreateDto listing) {
+    public String saveListing(@ModelAttribute ListingCreateDto listing) {
+        listing.setUserDto(modelMapper.map(userService.findUserByEmail("poxos@mail.ru"), UserDto.class));
         if (listingService.saveListing(parseCreateListingToListing(listing))) {
             log.info("Listing was saved by User with email {} ", listing.getUserDto().getEmail());
             return "redirect:/listings";
@@ -51,8 +51,8 @@ public class ListingController {
         return "redirect:/listings";
     }
 
-    @GetMapping(value = "/deleteListingById/{id}")
-    public String deleteListingById(@PathVariable(name = "id") int id) {
+    @GetMapping(value = "/deleteListingById")
+    public String deleteListingById(@RequestParam(name = "id") int id) {
         Listing listing = listingService.findListingById(id);
         if (listing == null) {
             log.info("Requested to delete listing by id {}, which not exist", id);
@@ -63,8 +63,8 @@ public class ListingController {
         return "redirect:/listings";
     }
 
-    @GetMapping(value = "/getListingById/{id}")
-    public String getListingById(@PathVariable(name = "id") int id, ModelMap modelMap) {
+    @GetMapping(value = "/getListingById")
+    public String getListingById(@RequestParam(name = "id") int id, ModelMap modelMap) {
         Listing listing = listingService.findListingById(id);
         if (listing == null) {
             log.info("Attempt to find listing by id {} which does not exist ", id);
@@ -76,18 +76,18 @@ public class ListingController {
     }
 
     @PostMapping("/updateListing")
-    public String updateListing(@RequestBody ListingCreateDto listing) {
+    public String updateListing(@ModelAttribute ListingCreateDto listing) {
         Listing updatedListing = listingService.updateListing(parseCreateListingToListing(listing));
         if (updatedListing != null) {
             log.info("Listing with id {} have been updated successfully ", updatedListing.getId());
-            return "redirect:/getListingById/" + updatedListing.getId();
+            return "redirect:/getListingById?id=" + updatedListing.getId();
         }
         log.info("Failed to update listing,may be wrong id or wrong user");
         return "redirect:/listings";
     }
 
-    @GetMapping("/byUser/{email}")
-    public String getListingsByUserEmail(@PathVariable(name = "email") String email, ModelMap modelMap) {
+    @GetMapping("/byUser")
+    public String getListingsByUserEmail(@RequestParam(name = "email") String email, ModelMap modelMap) {
         List<Listing> listingFromDB = listingService.findListingByUserEmail(email);
         if (listingFromDB != null) {
             List<ListingDto> listingDtoList = parseListingsToListingDtoList(listingFromDB);
@@ -100,8 +100,8 @@ public class ListingController {
         return "redirect:/listings";
     }
 
-    @GetMapping("/byCategory/{categoryId}")
-    public String getListingsByCategoryId(@PathVariable(name = "categoryId") int id, ModelMap modelMap) {
+    @GetMapping("/byCategory")
+    public String getListingsByCategoryId(@RequestParam(name = "categoryId") int id, ModelMap modelMap) {
         try {
             List<Listing> listingsFromDbByCategoryID = listingService.findListingByCategoryId(categoryService.findCategoryById(id));
             List<ListingDto> listingDtoList;
@@ -134,14 +134,17 @@ public class ListingController {
 
     private ListingDto parseListingToDto(Listing listing) {
         ListingDto listingDto = modelMapper.map(listing, ListingDto.class);
-        listingDto.setUserDto(modelMapper.map(listing.getUser(), UserDto.class));
+        if (listing.getUser() != null) {
+            listingDto.setUserDto(modelMapper.map(listing.getUser(), UserDto.class));
+        }
         return listingDto;
     }
 
     private Listing parseCreateListingToListing(ListingCreateDto listingCreateDto) {
         Listing listing = modelMapper.map(listingCreateDto, Listing.class);
-        listing.setUser(userService.findUserByEmail(listingCreateDto.getUserDto().getEmail()));
+        if (listingCreateDto.getUserDto() != null) {
+            listing.setUser(userService.findUserByEmail(listingCreateDto.getUserDto().getEmail()));
+        }
         return listing;
     }
-
 }

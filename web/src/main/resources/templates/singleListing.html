@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Single Listing Page</title>
+</head>
+<body>
+<div>
+    <h1>Single Listing</h1>
+    <table border="1">
+        <tr>
+            <th>Id</th>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Price</th>
+            <th>Category</th>
+            <th>user</th>
+
+        </tr>
+        <tr>
+            <td th:text="${listing.id}"></td>
+            <td><a th:href="@{/getListingById(id=${listing.id})}" href="#" ><span th:text="${listing.title}"></span></a></td>
+            <td th:text="${listing.description}"></td>
+            <td th:text="${listing.price}"></td>
+            <td th:text="${listing.category?.name}"></td>
+            <td><a th:href="@{/getUserById(id=${listing.userDto?.id})}" href="#"><span th:text="${listing.userDto?.name}"></span></a></td>
+        </tr>
+    </table>
+</div>
+</body>
+</html>

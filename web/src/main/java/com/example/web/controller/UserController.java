@@ -29,12 +29,13 @@ public class UserController {
         log.info("Requested to find all users , sending response with users list");
         List<UserDto> userDtos = users.stream().map(e ->
                 modelMapper.map(e, UserDto.class)).collect(Collectors.toList());
+        modelMap.addAttribute("user", new UserCreateDto());
         modelMap.addAttribute("users", userDtos);
         return "users";
     }
 
-    @GetMapping("/getUserById/{id}")
-    public String getUserById(@PathVariable(name = "id") int id, ModelMap modelMap) {
+    @GetMapping("/getUserById")
+    public String getUserById(@RequestParam(name = "id") int id, ModelMap modelMap) {
         User user = userService.findUserById(id);
         if (user == null) {
             log.info("Requested to find user by id {} which isn't exist", id);
@@ -45,8 +46,8 @@ public class UserController {
         return "singleUser";
     }
 
-    @GetMapping("/deleteUserById/{id}")
-    public String deleteUserById(@PathVariable(name = "id") int id) {
+    @GetMapping("/deleteUserById")
+    public String deleteUserById(@RequestParam(name = "id") int id) {
         if (!userService.deleteUserById(id)) {
             log.info("Attempt to delete user with id {} which isn't exist", id);
             return "redirect:/users";
@@ -55,8 +56,8 @@ public class UserController {
         return "redirect:/users";
     }
 
-    @PostMapping()
-    public String saveUser(@RequestBody @Valid UserCreateDto user) {
+    @PostMapping("/saveUser")
+    public String saveUser(@ModelAttribute UserCreateDto user) {
         if (userService.saveUser(modelMapper.map(user, User.class))) {
             log.info("User with {} email was saved", user.getEmail());
             return "redirect:/users";
@@ -66,13 +67,13 @@ public class UserController {
     }
 
     @PutMapping
-    public String updateUser(@RequestBody UserCreateDto user
+    public String updateUser(@ModelAttribute UserCreateDto user
             , @RequestParam(name = "id") int id) {
         User userFromDto = modelMapper.map(user, User.class);
         userFromDto.setId(id);
         if (userService.updateUser(userFromDto)) {
             log.info("User with was updated ");
-            return "redirect:/getUserById/" + id;
+            return "redirect:/getUserById?id=" + id;
         }
         log.info("Requested to update user with id {} failed", id);
         return "redirect:/users";

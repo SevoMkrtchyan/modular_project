@@ -6,10 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequiredArgsConstructor
@@ -20,12 +17,13 @@ public class CategoryController {
 
     @GetMapping("/categories")
     public String findAll(ModelMap modelMap) {
+        modelMap.addAttribute("category", new Category());
         modelMap.addAttribute("categories", categoryService.findAll());
-        return "category";
+        return "categories";
     }
 
     @PostMapping("/saveCategory")
-    public String saveCategory(@RequestBody Category category) {
+    public String saveCategory(@ModelAttribute Category category) {
         if (categoryService.saveCategory(category)) {
             log.info("Category with {} name was saved at", category.getName());
             return "redirect:/categories";
@@ -34,8 +32,8 @@ public class CategoryController {
         return "redirect:/categories";
     }
 
-    @GetMapping(value = "/deleteCategoryById/{id}")
-    public String deleteCategoryById(@PathVariable(name = "id") int id) {
+    @GetMapping(value = "/deleteCategoryById")
+    public String deleteCategoryById(@RequestParam(name = "id") int id) {
         if (!categoryService.deleteCategoryById(id)) {
             log.info("Requested to delete category by id {} which does not exist", id);
             return "redirect:/categories";
@@ -44,8 +42,8 @@ public class CategoryController {
         return "redirect:/categories";
     }
 
-    @GetMapping(value = "/getCategoryById/{id}")
-    public String getCategoryById(@PathVariable(name = "id") int id, ModelMap modelMap) {
+    @GetMapping(value = "/getCategoryById")
+    public String getCategoryById(@RequestParam(name = "id") int id, ModelMap modelMap) {
         Category category = categoryService.findCategoryById(id);
         if (category == null) {
             log.info("Requested to get category by id {} which does not exist", id);
@@ -57,14 +55,14 @@ public class CategoryController {
     }
 
     @PostMapping("/updateCategory")
-    public String updateCategory(@RequestBody Category category) {
+    public String updateCategory(@ModelAttribute Category category) {
         Category fromDB = categoryService.findCategoryById(category.getId());
         if (fromDB != null) {
             if (categoryService.findByName(category.getName()) == null) {
                 fromDB.setName(category.getName());
                 categoryService.saveCategory(fromDB);
                 log.info("Changed category by {} id and name {} to {} name", fromDB.getId(), fromDB.getName(), category.getName());
-                return "redirect:/getCategoryById/" + fromDB.getId();
+                return "redirect:/getCategoryById?id=" + fromDB.getId();
             }
             log.info("Request not completed because category with name {} already exist", category.getName());
         }

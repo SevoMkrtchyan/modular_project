@@ -1,5 +1,6 @@
 package com.example.common.service.impl;
 
+import com.example.common.entity.Role;
 import com.example.common.entity.User;
 import com.example.common.repository.ListingRepository;
 import com.example.common.repository.UserRepository;
@@ -25,6 +26,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean saveUser(User user) {
         if (!userRepository.findByEmail(user.getEmail()).isPresent()) {
+            user.setRole(Role.USER);
             userRepository.save(user);
             return true;
         }

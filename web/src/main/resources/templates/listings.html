@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Listings</title>
+</head>
+<body>
+<div>
+    <form th:action="@{/saveListing}" method="post" th:object="${listing}">
+        <label>Title:</label>
+        <input type="text" th:field="*{title}"/><br/>
+
+        <label>Description:</label>
+        <input type="text" th:field="*{description}"/><br/>
+
+        <label>Price:</label>
+        <input type="text" th:field="*{price}"/><br/>
+        <label>Listing Category:</label>
+        <label>
+            <select th:field="*{category.id}">
+                <option th:each="category1 : ${categories}" th:value="${category1.getId()}"
+                        th:text="${category1.getName()}"></option>
+            </select>
+        </label>
+
+        <!--        <label>Employee Company:</label>-->
+        <!--        <label>-->
+        <!--            <select th:field="*{company.id}">-->
+        <!--                <option th:each="company : ${companies}" th:value="${company.getId()}" th:text="${company.getName()}"></option>-->
+        <!--            </select>-->
+        <!--        </label>-->
+        <br/>
+
+        <p><input type="submit" value="Submit"/> <input type="reset" value="Reset"/></p>
+
+    </form>
+
+
+</div>
+<div style="display: flex; flex-flow: row wrap">
+    <h1>Listings of Listing App</h1>
+    <table border="1">
+        <tr>
+            <th>Id</th>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Price</th>
+            <th>Category</th>
+            <th>user</th>
+
+        </tr>
+        <tr th:each="listing : ${listings}">
+            <td th:text="${listing.id}"></td>
+            <td><a th:href="@{/getListingById(id=${listing.id})}" href="#"><span th:text="${listing.title}"></span></a>
+            </td>
+            <td th:text="${listing.description}"></td>
+            <td th:text="${listing.price}"></td>
+            <td th:text="${listing.category?.name}"></td>
+            <td><a th:href="@{/getUserById(id=${listing.userDto?.id})}" href="#"><span
+                    th:text="${listing.userDto?.name}"></span></a></td>
+        </tr>
+    </table>
+</div>
+<a href="/"><h1>Home</h1></a>
+</body>
+</html>

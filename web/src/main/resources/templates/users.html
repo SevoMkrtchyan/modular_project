@@ -6,6 +6,26 @@
 </head>
 <body>
 <div>
+    <form th:action="@{/saveUser}" method="post" th:object="${user}">
+        <label>Name:</label>
+        <input type="text" th:field="*{name}"/><br/>
+
+        <label>Surname:</label>
+        <input type="text" th:field="*{surname}"/><br/>
+
+        <label>Email:</label>
+        <input type="text" th:field="*{email}"/><br/>
+
+        <label>Employee Password:</label>
+        <input type="password" th:field="*{password}"/><br/>
+
+        <br/>
+        <p><input type="submit" value="Submit"/> <input type="reset" value="Reset"/></p>
+
+    </form>
+
+</div>
+<div style="display: flex; flex-flow: row wrap">
     <h1>Users of Listing App</h1>
     <table border="1">
         <tr>
@@ -17,13 +37,13 @@
         </tr>
         <tr th:each="user : ${users}">
             <td th:text="${user.id}"></td>
-            <td th:text="${user.name}"></td>
+            <td><a th:href="@{/getUserById(id=${user.id})}" href="#"><span th:text="${user.name}"></span></a></td>
             <td th:text="${user.surname}"></td>
             <td th:text="${user.email}"></td>
             <td th:text="${user.role.name()}"></td>
         </tr>
     </table>
 </div>
-<a href="/">Back</a>
+<a href="/"><h1>Home</h1></a>
 </body>
 </html>
